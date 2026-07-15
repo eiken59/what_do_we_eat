@@ -39,7 +39,8 @@ alter table restaurants drop column if exists tier;
 alter table restaurants drop column if exists sort_key;
 
 -- 4. 重建 view，改吐 last_eaten_slot / last_eaten_meal（is_available 改由前端算）。
-create view restaurants_with_status as
+create view restaurants_with_status
+with (security_invoker = on) as
 select
   r.*,
   le.last_eaten_date,
@@ -61,5 +62,8 @@ left join lateral (
 --    ⚠️ 注意：table 層的 grant（restaurants / history_entries）之前就下過了，
 --    新增「欄位」不需要再 grant（grant 是 table 級，不是 column 級），所以這裡只補 view。
 grant select on public.restaurants_with_status to authenticated;
+
+-- 6. security advisor：固定 set_updated_at 的 search_path（避免 search_path 注入警告）。
+alter function public.set_updated_at() set search_path = '';
 
 commit;

@@ -43,7 +43,10 @@ create index history_entries_date_idx on history_entries (eaten_date);
 -- 帶「上次吃在哪個 slot」的視圖。last_eaten_slot 即時從歷史紀錄算，不另外存。
 -- 只取「slot 編號最大」的那一筆，這樣 last_eaten_meal 對應到的是真正最後一餐，
 -- 不會發生「同一天午餐 slot 比前一天晚餐大」之類的排序錯亂。
-create view restaurants_with_status as
+-- security_invoker = on：查詢時用「當下登入者」的權限與 RLS 來跑，而不是 view 建立者。
+-- 少了這行，Supabase security advisor 會報 "Security Definer View"，且 RLS 會被繞過。
+create view restaurants_with_status
+with (security_invoker = on) as
 select
   r.*,
   le.last_eaten_date,
@@ -83,13 +86,19 @@ create policy "authenticated users full access on history_entries"
   with check (auth.role() = 'authenticated');
 
 -- updated_at 自動更新
+-- set search_path = ''：固定搜尋路徑，避免 search_path 注入。
+-- now() 在 pg_catalog（永遠可用），所以清空 search_path 不影響這支函式。
+-- 少了這行，advisor 會報 "Function Search Path Mutable"。
 create or replace function set_updated_at()
-returns trigger as $$
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
 begin
   new.updated_at = now();
   return new;
 end;
-$$ language plpgsql;
+$$;
 
 create trigger restaurants_set_updated_at
   before update on restaurants
