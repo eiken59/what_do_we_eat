@@ -195,17 +195,6 @@ header h1 {
   white-space: nowrap;
 }
 
-.tier-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  flex: 0 0 auto;
-  background: #ccc;
-}
-.tier-dot.tier-0 { background: #ff8a3d; }
-.tier-dot.tier-1 { background: #f0c040; }
-.tier-dot.tier-2 { background: #cfcfcf; }
-
 .eat-btn {
   padding: 0.4rem 0.8rem;
   font-size: 0.85rem;
@@ -274,25 +263,9 @@ header h1 {
   border-bottom: none;
 }
 
-.drag-handle {
-  color: #ccc;
-  cursor: grab;
-  padding: 0 0.3rem;
-  touch-action: none;
-}
-
 .edit-btn {
   padding: 0.35rem 0.7rem;
   font-size: 0.8rem;
-}
-
-/* SortableJS 拖曳中的樣式 */
-.sortable-ghost {
-  opacity: 0.3;
-}
-
-.sortable-chosen {
-  background: #fff6ee;
 }
 
 /* ---------- 新增餐廳表單 ---------- */
@@ -510,4 +483,38 @@ header h1 {
 
 .toast.error {
   background: #c0392b;
+}
+
+/* ---------- 標籤 filter ---------- */
+
+.tag-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.9rem;
+}
+
+.tag-chip {
+  background: #eee;
+  color: #777;
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+}
+
+.tag-chip.active {
+  background: #ff8a3d;
+  color: #fff;
+}
+
+/* ---------- 現在吃什麼的名次 ---------- */
+
+.rank-num {
+  flex: 0 0 auto;
+  min-width: 1.5rem;
+  text-align: center;
+  font-weight: 700;
+  color: #ff8a3d;
+  font-variant-numeric: tabular-nums;
 }

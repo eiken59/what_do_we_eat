@@ -33,6 +33,11 @@ begin
   end if;
 end $$;
 
+-- 3b. 偏好收斂：改成只用 1~5 的 preference 當唯一排序依據，
+--     手動拖曳分層（tier / sort_key）整套拿掉，前端改成依分數自動分組、不能拖。
+alter table restaurants drop column if exists tier;
+alter table restaurants drop column if exists sort_key;
+
 -- 4. 重建 view，改吐 last_eaten_slot / last_eaten_meal（is_available 改由前端算）。
 create view restaurants_with_status as
 select

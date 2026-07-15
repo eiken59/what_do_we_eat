@@ -47,6 +47,8 @@
       </div>
     </div>
 
+    <div id="tag-filter" class="tag-filter hidden"></div>
+
     <ul id="now-list" class="card-list"></ul>
     <p id="now-empty" class="empty-hint hidden">這一餐沒有可吃的（都還在冷卻），去偏好設定加幾間吧。</p>
 
@@ -58,7 +60,7 @@
 
   <!-- ───────── 偏好設定（輸入：手動拖曳分層 + 編輯 / 新增） ───────── -->
   <section id="pref-panel" class="panel hidden">
-    <p class="panel-hint">拖曳排順序、點每間的「編輯」改分數與冷卻餐數。這裡是你的主觀偏好輸入，跟「現在吃什麼」的建議是兩回事。</p>
+    <p class="panel-hint">依偏好分數（★）自動分組。點每間的「編輯」改分數與冷卻餐數。這裡是你的主觀偏好輸入，跟「現在吃什麼」的建議是兩回事。</p>
     <div id="tier-list"></div>
 
     <details id="add-wrap" class="add-wrap">
@@ -131,7 +133,6 @@
 
 <div id="toast" class="toast hidden"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 <script type="module" src="app.js"></script>
 </body>
 </html>

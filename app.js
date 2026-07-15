@@ -2,7 +2,6 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 import {
   SUPABASE_URL,
   SUPABASE_ANON_KEY,
-  TIERS,
   MEALS,
   MEAL_ORDER,
   MEAL_CUTOFF_HOUR,
@@ -19,6 +18,7 @@ const logoutBtn = document.getElementById('logout-btn');
 
 const nowSlotLabel = document.getElementById('now-slot-label');
 const mealToggle = document.getElementById('meal-toggle');
+const tagFilterEl = document.getElementById('tag-filter');
 const nowListEl = document.getElementById('now-list');
 const nowEmptyEl = document.getElementById('now-empty');
 const coolingWrap = document.getElementById('cooling-wrap');
@@ -51,9 +51,9 @@ const toastEl = document.getElementById('toast');
 
 // ---------- 狀態 ----------
 let currentUserId = null;
-let sortableInstances = [];
 let allRestaurants = []; // restaurants_with_status 的 rows（含 last_eaten_slot）
 let manualMeal = null; // null = 用時間自動判斷；否則 'lunch' / 'dinner'
+let selectedTags = new Set(); // 現在吃什麼的標籤 filter，空 = 全部
 let editingId = null;
 const _today = new Date();
 let calYear = _today.getFullYear();
@@ -154,8 +154,8 @@ async function loadRestaurants() {
   const { data, error } = await supabase
     .from('restaurants_with_status')
     .select('*')
-    .order('tier', { ascending: true })
-    .order('sort_key', { ascending: true });
+    .order('preference', { ascending: false, nullsFirst: false })
+    .order('name', { ascending: true });
 
   if (error) {
     console.error(error);
@@ -163,7 +163,7 @@ async function loadRestaurants() {
   }
   allRestaurants = data || [];
   renderNow();
-  renderTiers(allRestaurants);
+  renderPreferenceList(allRestaurants);
 }
 
 // ---------- 現在吃什麼（輸出畫面） ----------
@@ -178,11 +178,35 @@ function renderNow() {
     b.classList.toggle('active', b.dataset.meal === meal);
   });
 
-  const sorted = [...allRestaurants].sort(
-    (a, b) => a.tier - b.tier || a.sort_key - b.sort_key
-  );
-  const available = sorted.filter((r) => isAvailable(r, slot));
-  const cooling = sorted.filter((r) => !isAvailable(r, slot));
+  renderTagFilter();
+
+  const matchTags = (r) =>
+    selectedTags.size === 0 || (r.tags || []).some((t) => selectedTags.has(t));
+  const pool = allRestaurants.filter(matchTags);
+
+  // 可吃清單：先濾掉冷卻中的，再依偏好度由高到低排名。
+  // 同偏好度 = 同名次（標準競賽排名，會出現 1, 2, 2, 4, 5）；同分內再依名稱排，純顯示順序。
+  const available = pool
+    .filter((r) => isAvailable(r, slot))
+    .sort(
+      (a, b) =>
+        (b.preference || 0) - (a.preference || 0) ||
+        (a.name || '').localeCompare(b.name || '', 'zh-Hant')
+    );
+  available.forEach((r, i) => {
+    r._rank =
+      i === 0 || (r.preference || 0) !== (available[i - 1].preference || 0)
+        ? i + 1
+        : available[i - 1]._rank;
+  });
+
+  const cooling = pool
+    .filter((r) => !isAvailable(r, slot))
+    .sort(
+      (a, b) =>
+        (b.preference || 0) - (a.preference || 0) ||
+        (a.name || '').localeCompare(b.name || '', 'zh-Hant')
+    );
 
   // 可吃清單
   nowListEl.innerHTML = '';
@@ -200,7 +224,7 @@ function renderNowItem(r, meal) {
   const li = document.createElement('li');
   li.className = 'restaurant-item';
   li.innerHTML = `
-    <span class="tier-dot tier-${r.tier}"></span>
+    <span class="rank-num">${r._rank}</span>
     <span class="restaurant-name">${escapeHtml(r.name)}</span>
     <span class="restaurant-pref">${'★'.repeat(r.preference || 0)}</span>
     <button class="eat-btn" type="button">吃這間</button>
@@ -235,38 +259,75 @@ mealToggle.addEventListener('click', (e) => {
   renderNow();
 });
 
-// ---------- 偏好設定（輸入畫面：拖曳分層） ----------
-function renderTiers(restaurants) {
-  tierListEl.innerHTML = '';
-  sortableInstances.forEach((s) => s.destroy());
-  sortableInstances = [];
+// 標籤 filter：蒐集所有餐廳用過的標籤，做成可多選的 chip；空 = 全部
+function renderTagFilter() {
+  const tags = [...new Set(allRestaurants.flatMap((r) => r.tags || []))].sort();
+  tagFilterEl.innerHTML = '';
+  if (tags.length === 0) {
+    tagFilterEl.classList.add('hidden');
+    return;
+  }
+  tagFilterEl.classList.remove('hidden');
 
-  TIERS.forEach((tierDef) => {
-    const tierWrap = document.createElement('div');
-    tierWrap.className = 'tier-block';
+  const makeChip = (label, active, tagVal) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'tag-chip' + (active ? ' active' : '');
+    b.textContent = label;
+    b._tag = tagVal; // null = 「全部」
+    return b;
+  };
+
+  tagFilterEl.appendChild(makeChip('全部', selectedTags.size === 0, null));
+  tags.forEach((t) => tagFilterEl.appendChild(makeChip(t, selectedTags.has(t), t)));
+}
+
+tagFilterEl.addEventListener('click', (e) => {
+  const btn = e.target.closest('.tag-chip');
+  if (!btn) return;
+  const t = btn._tag;
+  if (t === null) selectedTags.clear();
+  else if (selectedTags.has(t)) selectedTags.delete(t);
+  else selectedTags.add(t);
+  renderNow();
+});
+
+// ---------- 偏好設定（輸入畫面：依分數自動分組，不能拖） ----------
+function renderPreferenceList(restaurants) {
+  tierListEl.innerHTML = '';
+
+  if (restaurants.length === 0) {
+    tierListEl.innerHTML =
+      '<p class="empty-hint">還沒有餐廳，用下面的「＋ 新增餐廳」加幾間。</p>';
+    return;
+  }
+
+  // 依偏好分數 5→1 分組，未評分擺最後；標題唯讀，順序由分數決定，不能拖
+  const groups = [5, 4, 3, 2, 1].map((score) => ({
+    label: '★'.repeat(score),
+    items: restaurants.filter((r) => (r.preference || 0) === score),
+  }));
+  const unrated = restaurants.filter((r) => !r.preference);
+  if (unrated.length) groups.push({ label: '未評分', items: unrated });
+
+  groups.forEach((g) => {
+    if (g.items.length === 0) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'tier-block';
 
     const heading = document.createElement('h3');
-    heading.textContent = tierDef.label;
-    tierWrap.appendChild(heading);
+    heading.textContent = g.label;
+    wrap.appendChild(heading);
 
     const ul = document.createElement('ul');
     ul.className = 'tier-ul';
-    ul.dataset.tierId = tierDef.id;
-
-    restaurants
-      .filter((r) => r.tier === tierDef.id)
+    g.items
+      .slice()
+      .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'zh-Hant'))
       .forEach((r) => ul.appendChild(renderPrefItem(r)));
 
-    tierWrap.appendChild(ul);
-    tierListEl.appendChild(tierWrap);
-
-    const sortable = new Sortable(ul, {
-      group: 'restaurants',
-      animation: 200,
-      handle: '.drag-handle',
-      onEnd: handleReorder,
-    });
-    sortableInstances.push(sortable);
+    wrap.appendChild(ul);
+    tierListEl.appendChild(wrap);
   });
 }
 
@@ -274,11 +335,9 @@ function renderPrefItem(r) {
   const li = document.createElement('li');
   li.className = 'restaurant-item';
   li.dataset.id = r.id;
-  li.dataset.sortKey = r.sort_key;
 
   const cd = r.cooldown_meals || 0;
   li.innerHTML = `
-    <span class="drag-handle">⋮⋮</span>
     <span class="restaurant-name">${escapeHtml(r.name)}</span>
     <span class="restaurant-pref">${'★'.repeat(r.preference || 0)}</span>
     <span class="cooldown-info">${cd === 0 ? '不限' : '隔 ' + cd + ' 餐'}</span>
@@ -286,36 +345,6 @@ function renderPrefItem(r) {
   `;
   li.querySelector('.edit-btn').addEventListener('click', () => openEdit(r));
   return li;
-}
-
-async function handleReorder(evt) {
-  const item = evt.item;
-  const restaurantId = item.dataset.id;
-  const newTier = parseInt(evt.to.dataset.tierId, 10);
-  const newSortKey = computeNewSortKey(evt.to, item);
-
-  item.dataset.sortKey = newSortKey;
-
-  const { error } = await supabase
-    .from('restaurants')
-    .update({ tier: newTier, sort_key: newSortKey, updated_by: currentUserId })
-    .eq('id', restaurantId);
-
-  if (error) console.error(error);
-}
-
-// 用相鄰兩個項目的 sort_key 取中間值，插入不用重排整批資料
-function computeNewSortKey(container, item) {
-  const items = Array.from(container.children);
-  const idx = items.indexOf(item);
-  const prev = items[idx - 1];
-  const next = items[idx + 1];
-  const prevKey = prev ? parseFloat(prev.dataset.sortKey) : null;
-  const nextKey = next ? parseFloat(next.dataset.sortKey) : null;
-  if (prevKey === null && nextKey === null) return 0;
-  if (prevKey === null) return nextKey - 1;
-  if (nextKey === null) return prevKey + 1;
-  return (prevKey + nextKey) / 2;
 }
 
 // ---------- 新增餐廳 ----------
@@ -328,15 +357,11 @@ addForm.addEventListener('submit', async (e) => {
 
   if (!name) return;
 
-  const lastTier = TIERS[TIERS.length - 1].id;
-
   const { error } = await supabase.from('restaurants').insert({
     name,
     tags: tagsRaw ? tagsRaw.split(',').map((t) => t.trim()).filter(Boolean) : [],
     preference,
     cooldown_meals: cooldownMeals,
-    tier: lastTier,
-    sort_key: Date.now(), // 新項目先排在該層最後面，之後可以再拖
     created_by: currentUserId,
     updated_by: currentUserId,
   });
@@ -350,6 +375,7 @@ addForm.addEventListener('submit', async (e) => {
   document.getElementById('add-cooldown').value = 0;
   document.getElementById('add-wrap').removeAttribute('open');
   toast(`已新增 ${name}`);
+  loadRestaurants(); // 不等 Realtime，立刻刷新（原本要手動 reload 才會出現）
 });
 
 // ---------- 編輯 / 刪除餐廳 ----------
@@ -396,6 +422,7 @@ editSaveBtn.addEventListener('click', async () => {
   }
   closeEdit();
   toast('已更新');
+  loadRestaurants();
 });
 
 editDeleteBtn.addEventListener('click', async () => {
@@ -409,6 +436,7 @@ editDeleteBtn.addEventListener('click', async () => {
   }
   closeEdit();
   toast('已刪除');
+  loadRestaurants();
 });
 
 editCancelBtn.addEventListener('click', closeEdit);
@@ -429,6 +457,8 @@ async function markEaten(restaurantId, name, dateStr, meal) {
     return;
   }
   toast(`已記錄：${name}（${shortDate(dateStr)} ${MEALS[meal]}）`);
+  loadRestaurants(); // 吃完立刻從「可吃」清單掉下去，才有回饋
+  loadCalendar();
 }
 
 // ---------- 月曆（歷史紀錄 + 補登） ----------
@@ -566,6 +596,7 @@ async function addEntry(restaurantId, name, dateStr, meal) {
   }
   toast(`已登記：${name}（${shortDate(dateStr)} ${MEALS[meal]}）`);
   await loadCalendar();
+  loadRestaurants(); // last_eaten 變了，現在吃什麼要重算
   openDay(dateStr); // 重開以刷新這天的內容
 }
 
@@ -577,6 +608,7 @@ async function deleteEntry(id, dateStr) {
   }
   toast('已刪除一筆紀錄');
   await loadCalendar();
+  loadRestaurants();
   openDay(dateStr);
 }
 

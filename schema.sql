@@ -17,10 +17,8 @@ create table restaurants (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   tags text[],                                    -- 例如 {"日式","消夜"}
-  preference smallint check (preference between 1 and 5),
+  preference smallint check (preference between 1 and 5), -- 1~5 分，唯一的偏好排序依據
   cooldown_meals integer not null default 0,       -- 隔幾「餐」才會再排進來（0 = 下一餐就能再吃）
-  tier integer not null default 0,                 -- 分層清單的「層」，數字越小排越前面
-  sort_key double precision not null default 0,    -- 同層內的順序，插入時取相鄰兩者中間值，不用重排整批資料
   created_by uuid references auth.users(id),
   updated_by uuid references auth.users(id),
   created_at timestamptz not null default now(),
