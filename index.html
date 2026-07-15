@@ -32,37 +32,104 @@
   </header>
 
   <nav id="tabs">
-    <button class="tab-btn active" data-tab="tier">排序</button>
-    <button class="tab-btn" data-tab="add">新增餐廳</button>
-    <button class="tab-btn" data-tab="history">歷史紀錄</button>
+    <button class="tab-btn active" data-tab="now">現在吃什麼</button>
+    <button class="tab-btn" data-tab="pref">偏好設定</button>
+    <button class="tab-btn" data-tab="cal">月曆</button>
   </nav>
 
-  <section id="tier-panel" class="panel">
+  <!-- ───────── 現在吃什麼（輸出：偏好 tier + 冷卻狀態算出來的建議） ───────── -->
+  <section id="now-panel" class="panel">
+    <div id="now-header">
+      <div id="now-slot-label"></div>
+      <div id="meal-toggle" class="meal-toggle">
+        <button type="button" data-meal="lunch">午餐</button>
+        <button type="button" data-meal="dinner">晚餐</button>
+      </div>
+    </div>
+
+    <ul id="now-list" class="card-list"></ul>
+    <p id="now-empty" class="empty-hint hidden">這一餐沒有可吃的（都還在冷卻），去偏好設定加幾間吧。</p>
+
+    <details id="cooling-wrap" class="cooling-wrap hidden">
+      <summary>冷卻中（<span id="cooling-count">0</span>）</summary>
+      <ul id="cooling-list" class="card-list muted"></ul>
+    </details>
+  </section>
+
+  <!-- ───────── 偏好設定（輸入：手動拖曳分層 + 編輯 / 新增） ───────── -->
+  <section id="pref-panel" class="panel hidden">
+    <p class="panel-hint">拖曳排順序、點每間的「編輯」改分數與冷卻餐數。這裡是你的主觀偏好輸入，跟「現在吃什麼」的建議是兩回事。</p>
     <div id="tier-list"></div>
+
+    <details id="add-wrap" class="add-wrap">
+      <summary>＋ 新增餐廳</summary>
+      <form id="add-form">
+        <label>餐廳名稱
+          <input type="text" id="add-name" required />
+        </label>
+        <label>標籤（用逗號分隔，選填）
+          <input type="text" id="add-tags" placeholder="日式, 消夜" />
+        </label>
+        <label>偏好分數（1～5）
+          <input type="number" id="add-preference" min="1" max="5" value="3" />
+        </label>
+        <label>冷卻餐數（隔幾餐才會再排進來，0 = 下一餐就能再吃）
+          <input type="number" id="add-cooldown" min="0" value="0" />
+        </label>
+        <button type="submit">新增</button>
+      </form>
+    </details>
   </section>
 
-  <section id="add-panel" class="panel hidden">
-    <form id="add-form">
-      <label>餐廳名稱
-        <input type="text" id="add-name" required />
-      </label>
-      <label>標籤（用逗號分隔，選填）
-        <input type="text" id="add-tags" placeholder="日式, 消夜" />
-      </label>
-      <label>偏好分數（1～5）
-        <input type="number" id="add-preference" min="1" max="5" value="3" />
-      </label>
-      <label>冷卻天數（幾天內不重複排進來）
-        <input type="number" id="add-cooldown" min="0" value="0" />
-      </label>
-      <button type="submit">新增</button>
-    </form>
-  </section>
-
-  <section id="history-panel" class="panel hidden">
-    <ul id="history-list"></ul>
+  <!-- ───────── 月曆（歷史紀錄 + 補登：點某天可指定午/晚餐登記） ───────── -->
+  <section id="cal-panel" class="panel hidden">
+    <p class="panel-hint">點任一天可以補登或修正那天的午餐 / 晚餐。</p>
+    <div id="cal-nav">
+      <button type="button" id="cal-prev" aria-label="上個月">‹</button>
+      <span id="cal-title"></span>
+      <button type="button" id="cal-next" aria-label="下個月">›</button>
+    </div>
+    <div id="calendar"></div>
   </section>
 </div>
+
+<!-- ───────── 編輯餐廳 modal ───────── -->
+<div id="edit-modal" class="modal hidden">
+  <div class="modal-card">
+    <h3>編輯餐廳</h3>
+    <label>名稱
+      <input type="text" id="edit-name" />
+    </label>
+    <label>標籤（用逗號分隔）
+      <input type="text" id="edit-tags" />
+    </label>
+    <label>偏好分數（1～5）
+      <input type="number" id="edit-preference" min="1" max="5" />
+    </label>
+    <label>冷卻餐數（隔幾餐才會再排進來）
+      <input type="number" id="edit-cooldown" min="0" />
+    </label>
+    <p id="edit-error" class="error"></p>
+    <div class="modal-actions">
+      <button type="button" id="edit-save">儲存</button>
+      <button type="button" id="edit-delete" class="danger">刪除</button>
+      <button type="button" id="edit-cancel" class="ghost">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ───────── 某天的登記 modal（月曆點進來） ───────── -->
+<div id="day-modal" class="modal hidden">
+  <div class="modal-card">
+    <h3 id="day-title"></h3>
+    <div id="day-slots"></div>
+    <div class="modal-actions">
+      <button type="button" id="day-close" class="ghost">關閉</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 <script type="module" src="app.js"></script>

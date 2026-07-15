@@ -38,7 +38,8 @@ body {
 /* ---------- 共用元件 ---------- */
 
 input,
-button {
+button,
+select {
   font-size: 1rem;
   padding: 0.6rem 0.8rem;
   border-radius: 10px;
@@ -50,6 +51,18 @@ button {
   color: white;
   border: none;
   font-weight: 600;
+  cursor: pointer;
+}
+
+button.ghost {
+  background: transparent;
+  color: #888;
+  border: 1px solid #ddd;
+  font-weight: 500;
+}
+
+button.danger {
+  background: #e74c3c;
 }
 
 header {
@@ -68,6 +81,21 @@ header h1 {
   background: transparent;
   color: #999;
   border: 1px solid #ddd;
+  font-weight: 500;
+}
+
+.panel-hint {
+  font-size: 0.8rem;
+  color: #999;
+  margin: 0 0.2rem 0.8rem;
+  line-height: 1.5;
+}
+
+.empty-hint {
+  text-align: center;
+  color: #999;
+  font-size: 0.9rem;
+  padding: 2rem 1rem;
 }
 
 /* ---------- 分頁按鈕 ---------- */
@@ -82,6 +110,8 @@ header h1 {
   flex: 1;
   background: #eee;
   color: #666;
+  font-size: 0.9rem;
+  padding: 0.55rem 0.4rem;
 }
 
 .tab-btn.active {
@@ -93,7 +123,132 @@ header h1 {
   padding: 0 1rem;
 }
 
-/* ---------- 分層清單 ---------- */
+/* ---------- 現在吃什麼 ---------- */
+
+#now-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.9rem;
+  flex-wrap: wrap;
+}
+
+#now-slot-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #444;
+}
+
+.meal-toggle {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.meal-toggle button {
+  background: #eee;
+  color: #777;
+  font-size: 0.85rem;
+  padding: 0.4rem 0.9rem;
+}
+
+.meal-toggle button.active {
+  background: #ff8a3d;
+  color: white;
+}
+
+.card-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.card-list.muted {
+  background: #f6f4f0;
+  box-shadow: none;
+}
+
+.restaurant-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 0.8rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.restaurant-item:last-child {
+  border-bottom: none;
+}
+
+.restaurant-name {
+  flex: 1;
+  font-weight: 500;
+}
+
+.restaurant-pref {
+  color: #ff8a3d;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.tier-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: #ccc;
+}
+.tier-dot.tier-0 { background: #ff8a3d; }
+.tier-dot.tier-1 { background: #f0c040; }
+.tier-dot.tier-2 { background: #cfcfcf; }
+
+.eat-btn {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.last-eaten {
+  font-size: 0.75rem;
+  color: #aaa;
+  white-space: nowrap;
+}
+
+.cooldown-badge {
+  font-size: 0.75rem;
+  color: #b06a2c;
+  background: #fbeadd;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.cooldown-info {
+  font-size: 0.75rem;
+  color: #aaa;
+  white-space: nowrap;
+}
+
+.cooling-wrap {
+  margin-top: 1rem;
+}
+
+.cooling-wrap summary {
+  cursor: pointer;
+  color: #999;
+  font-size: 0.85rem;
+  padding: 0.4rem 0.2rem;
+}
+
+.cooling-wrap .restaurant-item {
+  opacity: 0.75;
+}
+
+/* ---------- 偏好設定：分層清單 ---------- */
 
 .tier-block {
   margin-bottom: 1.2rem;
@@ -115,20 +270,8 @@ header h1 {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
-.restaurant-item {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.7rem 0.8rem;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.restaurant-item:last-child {
+.tier-ul .restaurant-item:last-child {
   border-bottom: none;
-}
-
-.restaurant-item.unavailable {
-  opacity: 0.45;
 }
 
 .drag-handle {
@@ -138,27 +281,9 @@ header h1 {
   touch-action: none;
 }
 
-.restaurant-name {
-  flex: 1;
-  font-weight: 500;
-}
-
-.restaurant-pref {
-  color: #ff8a3d;
-  font-size: 0.85rem;
-}
-
-.cooldown-badge {
-  font-size: 0.75rem;
-  color: #999;
-  background: #f2f2f2;
-  padding: 0.15rem 0.5rem;
-  border-radius: 999px;
-}
-
-.eat-btn {
-  padding: 0.4rem 0.7rem;
-  font-size: 0.85rem;
+.edit-btn {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.8rem;
 }
 
 /* SortableJS 拖曳中的樣式 */
@@ -170,15 +295,32 @@ header h1 {
   background: #fff6ee;
 }
 
-/* ---------- 表單 ---------- */
+/* ---------- 新增餐廳表單 ---------- */
+
+.add-wrap {
+  margin-top: 0.5rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  padding: 0.3rem 0.9rem;
+}
+
+.add-wrap summary {
+  cursor: pointer;
+  color: #ff8a3d;
+  font-weight: 600;
+  padding: 0.6rem 0.2rem;
+}
 
 #add-form {
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
+  padding: 0.5rem 0 1rem;
 }
 
-#add-form label {
+#add-form label,
+.modal label {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
@@ -186,26 +328,186 @@ header h1 {
   color: #666;
 }
 
-/* ---------- 歷史紀錄 ---------- */
+/* ---------- Modal ---------- */
 
-#history-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  background: #fff;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-}
-
-#history-list li {
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
-  gap: 0.8rem;
-  padding: 0.7rem 0.9rem;
-  border-bottom: 1px solid #f0f0f0;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 50;
 }
 
-.history-date {
+.modal-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.3rem;
+  width: 100%;
+  max-width: 420px;
+  max-height: 85vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.modal-card h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+}
+
+.modal-actions button {
+  flex: 1;
+}
+
+/* ---------- 月曆 ---------- */
+
+#cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 0.8rem;
+}
+
+#cal-nav button {
+  background: #eee;
+  color: #555;
+  padding: 0.3rem 0.9rem;
+  font-size: 1.1rem;
+}
+
+#cal-title {
+  font-weight: 600;
+  min-width: 8rem;
+  text-align: center;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+.cal-weekday {
+  text-align: center;
+  font-size: 0.75rem;
+  color: #aaa;
+  padding: 0.2rem 0;
+}
+
+.cal-cell {
+  background: #fff;
+  border-radius: 8px;
+  min-height: 3.6rem;
+  padding: 0.2rem 0.25rem;
+  font-size: 0.7rem;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.cal-cell.empty {
+  background: transparent;
+  cursor: default;
+}
+
+.cal-cell.today {
+  outline: 2px solid #ff8a3d;
+}
+
+.cal-day {
+  font-size: 0.75rem;
   color: #999;
-  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.cal-meal {
+  line-height: 1.25;
+  color: #444;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cal-meal b {
+  color: #ff8a3d;
+  margin-right: 2px;
+}
+
+/* 某天登記 modal 內的午/晚餐區塊 */
+.day-slot {
+  border-top: 1px solid #f0f0f0;
+  padding-top: 0.7rem;
+}
+
+.day-slot h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+}
+
+.day-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+}
+
+.day-entry .danger {
+  padding: 0.25rem 0.6rem;
+  font-size: 0.78rem;
+}
+
+.day-empty {
+  color: #bbb;
+  font-size: 0.85rem;
+  padding: 0.2rem 0;
+}
+
+.day-add {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+
+.day-add .day-select {
+  flex: 1;
+  min-width: 0;
+}
+
+.day-add-btn {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+/* ---------- Toast ---------- */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 2rem;
+  transform: translateX(-50%);
+  background: #333;
+  color: #fff;
+  padding: 0.7rem 1.2rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+  max-width: 90vw;
+  text-align: center;
+}
+
+.toast.error {
+  background: #c0392b;
 }

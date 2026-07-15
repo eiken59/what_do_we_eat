@@ -10,3 +10,12 @@ export const TIERS = [
   { id: 1, label: '普通' },
   { id: 2, label: '先緩緩' },
 ];
+
+// 一天分兩個 meal slot：午餐、晚餐
+export const MEALS = { lunch: '午餐', dinner: '晚餐' };
+export const MEAL_ORDER = ['lunch', 'dinner'];
+
+// 用「現在幾點」預設要決定午餐還是晚餐的分界：
+// 當地時間 < 16:00 算午餐，>= 16:00 算晚餐。
+// 這只是預設值，「現在吃什麼」畫面上還有手動午/晚餐切換可以蓋過。
+export const MEAL_CUTOFF_HOUR = 16;
