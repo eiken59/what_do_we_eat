@@ -1,0 +1,9 @@
+{
+  "name": "要吃什麼",
+  "short_name": "要吃什麼",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf7f2",
+  "theme_color": "#ff8a3d",
+  "icons": []
+}

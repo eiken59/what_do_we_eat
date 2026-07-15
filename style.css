@@ -1,0 +1,211 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", sans-serif;
+  background: #faf7f2;
+  color: #2b2b2b;
+  padding-bottom: 2rem;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ---------- 登入畫面 ---------- */
+
+#login-view {
+  max-width: 360px;
+  margin: 4rem auto;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+#login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.error {
+  color: #c0392b;
+  font-size: 0.9rem;
+  min-height: 1.2em;
+}
+
+/* ---------- 共用元件 ---------- */
+
+input,
+button {
+  font-size: 1rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+}
+
+button {
+  background: #ff8a3d;
+  color: white;
+  border: none;
+  font-weight: 600;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+}
+
+header h1 {
+  font-size: 1.3rem;
+  margin: 0;
+}
+
+#logout-btn {
+  background: transparent;
+  color: #999;
+  border: 1px solid #ddd;
+}
+
+/* ---------- 分頁按鈕 ---------- */
+
+#tabs {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0 1rem 1rem;
+}
+
+.tab-btn {
+  flex: 1;
+  background: #eee;
+  color: #666;
+}
+
+.tab-btn.active {
+  background: #ff8a3d;
+  color: white;
+}
+
+.panel {
+  padding: 0 1rem;
+}
+
+/* ---------- 分層清單 ---------- */
+
+.tier-block {
+  margin-bottom: 1.2rem;
+}
+
+.tier-block h3 {
+  font-size: 0.95rem;
+  color: #888;
+  margin: 0 0 0.4rem 0.2rem;
+}
+
+.tier-ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-height: 3rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.restaurant-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 0.8rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.restaurant-item:last-child {
+  border-bottom: none;
+}
+
+.restaurant-item.unavailable {
+  opacity: 0.45;
+}
+
+.drag-handle {
+  color: #ccc;
+  cursor: grab;
+  padding: 0 0.3rem;
+  touch-action: none;
+}
+
+.restaurant-name {
+  flex: 1;
+  font-weight: 500;
+}
+
+.restaurant-pref {
+  color: #ff8a3d;
+  font-size: 0.85rem;
+}
+
+.cooldown-badge {
+  font-size: 0.75rem;
+  color: #999;
+  background: #f2f2f2;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+}
+
+.eat-btn {
+  padding: 0.4rem 0.7rem;
+  font-size: 0.85rem;
+}
+
+/* SortableJS 拖曳中的樣式 */
+.sortable-ghost {
+  opacity: 0.3;
+}
+
+.sortable-chosen {
+  background: #fff6ee;
+}
+
+/* ---------- 表單 ---------- */
+
+#add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+#add-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+/* ---------- 歷史紀錄 ---------- */
+
+#history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+#history-list li {
+  display: flex;
+  gap: 0.8rem;
+  padding: 0.7rem 0.9rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.history-date {
+  color: #999;
+  font-variant-numeric: tabular-nums;
+}
